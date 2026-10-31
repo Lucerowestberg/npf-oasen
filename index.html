@@ -346,6 +346,7 @@
               <div class="reminder-controls">
                 <label class="switch"><input id="reminder-toggle" type="checkbox" aria-label="Slå på morgonpåminnelse"><span class="switch-track"></span></label>
                 <label class="sr-only" for="reminder-time">Tid för påminnelse</label><input id="reminder-time" type="time" value="08:00" aria-label="Tid för påminnelse">
+                <button class="button button-outline" type="button" id="test-notification">Testa notis</button>
               </div>
             </section>
             <section class="gentle-panel"><p>Vardags Tips</p><button type="button" data-view="toolbox" aria-label="Öppna verktygslådan" title="Öppna verktygslådan">→</button></section>
@@ -548,11 +549,18 @@
         <div class="card-tools"><button class="text-button" type="button" data-delete-note="${index}">Ta bort</button></div></article>`).join("") : `<div class="empty-state">Här visas dina anteckningar när du sparat något.</div>`;
     }
     function renderReminder() {
+      if ("Notification" in window && Notification.permission === "denied" && state.reminderEnabled) {
+        state.reminderEnabled = false;
+        persist();
+      }
       document.getElementById("reminder-toggle").checked = state.reminderEnabled;
       document.getElementById("reminder-time").value = state.reminderTime;
-      document.getElementById("reminder-copy").textContent = state.reminderEnabled
+      const copy = state.reminderEnabled
         ? `Påminnelse kl. ${state.reminderTime}. Den visas när appen är öppen.`
-        : "Påminnelsen kan visas när appen är öppen.";
+        : "Påminnelsen visas när appen är öppen.";
+      document.getElementById("reminder-copy").textContent = "Notification" in window && Notification.permission === "denied"
+        ? "Notiser är blockerade. Tillåt dem i Chromes webbplatsinställningar och testa igen."
+        : "Notification" in window ? copy : "Den här webbläsaren stöder inte notiser.";
     }
     function setView(view) {
       document.querySelectorAll(".page").forEach((page) => {
@@ -617,13 +625,50 @@
       state.notes.unshift({ title: data.get("title").trim(), body: data.get("body").trim(), date });
       persist(); renderNotes(); form.reset(); document.getElementById("note-title").focus(); showToast("Anteckningen är sparad på den här enheten.");
     });
+    async function ensureNotificationPermission() {
+      if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+        showToast("Den här webbläsaren stöder inte notiser.");
+        return false;
+      }
+      try {
+        if (Notification.permission === "default") await Notification.requestPermission();
+      } catch (error) {
+        console.error("Kunde inte begära notisbehörighet.", error);
+      }
+      if (Notification.permission !== "granted") {
+        showToast("Tillåt notiser för NPF-Oasen i Chromes webbplatsinställningar.");
+        return false;
+      }
+      return true;
+    }
+    async function sendAppNotification(title, body) {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification(title, {
+        body,
+        icon: "./icon-192.png",
+        badge: "./icon-192.png",
+        data: { url: "./" }
+      });
+    }
     document.getElementById("reminder-toggle").addEventListener("change", async (event) => {
-      if (event.target.checked && "Notification" in window && Notification.permission === "default") {
-        await Notification.requestPermission();
+      if (event.target.checked && !(await ensureNotificationPermission())) {
+        state.reminderEnabled = false;
+        persist(); renderReminder();
+        return;
       }
       state.reminderEnabled = event.target.checked;
       persist(); renderReminder();
       showToast(state.reminderEnabled ? "Morgonpåminnelsen är på." : "Morgonpåminnelsen är av.");
+    });
+    document.getElementById("test-notification").addEventListener("click", async () => {
+      if (!(await ensureNotificationPermission())) { renderReminder(); return; }
+      try {
+        await sendAppNotification("NPF-Oasen", "Testnotis: notiser fungerar på den här enheten.");
+        showToast("Testnotis skickad.");
+      } catch (error) {
+        console.error("Kunde inte visa testnotisen.", error);
+        showToast("Kunde inte visa notisen. Kontrollera Chromes webbplatsinställningar.");
+      }
     });
     document.getElementById("reminder-time").addEventListener("change", (event) => {
       state.reminderTime = event.target.value || "08:00";
@@ -633,14 +678,21 @@
       state.theme = state.theme === "dark" ? "light" : "dark";
       persist(); applyTheme();
     });
-    function checkReminder() {
+    let checkingReminder = false;
+    async function checkReminder() {
       if (!state.reminderEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
       const now = new Date();
       const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       const date = localDateKey(now);
-      if (currentTime === state.reminderTime && state.notifiedDate !== date) {
-        new Notification("En liten påminnelse från NPF-Oasen", { body: dailyWisdom[dailyIndex(dailyWisdom.length)].text });
+      if (checkingReminder || currentTime < state.reminderTime || state.notifiedDate === date) return;
+      checkingReminder = true;
+      try {
+        await sendAppNotification("En liten påminnelse från NPF-Oasen", dailyWisdom[dailyIndex(dailyWisdom.length)].text);
         state.notifiedDate = date; persist();
+      } catch (error) {
+        console.error("Kunde inte visa morgonpåminnelsen.", error);
+      } finally {
+        checkingReminder = false;
       }
     }
     applyTheme(); renderDailyContent(); renderStrategies(); renderSaved(); renderNotes(); renderReminder();
