@@ -1,4 +1,4 @@
-const CACHE_NAME = "npf-oasen-shell-v3";
+const CACHE_NAME = "npf-oasen-shell-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -57,5 +57,16 @@ self.addEventListener("fetch", (event) => {
     const response = await fetch(request);
     if (response.ok) await cache.put(request, response.clone());
     return response;
+  })());
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of windows) {
+      if ("focus" in client) return client.focus();
+    }
+    return self.clients.openWindow(event.notification.data?.url || "./");
   })());
 });
