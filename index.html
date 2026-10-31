@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#48665a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="NPF-Oasen">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+  <title>NPF-Oasen | En sak i taget</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #263630;
+      --muted: #66756d;
+      --green: #48665a;
+      --green-deep: #2e463e;
+      --mint: #cfe2d1;
+      --paper: #dcebdc;
+      --white: #eff6f0;
+      --coral: #c87978;
+      --coral-pale: #e4eee5;
+      --lime: #c5d6bd;
+      --line: #d4dfd8;
+      --shadow: 0 16px 38px rgba(38, 54, 48, .08);
+      --eyebrow: #657c70;
+      --tag: #4d7260;
+      --warm-text: #53685d;
+      --tip-icon-text: #805b5b;
+      --meta: #87958d;
+      --label: #53685d;
+      --text-button: #4d695a;
+      --warm-border: #c8d8ca;
+      --warm-surface: #eff6f0;
+      --focus: #9c7d7a;
+      font-family: "Aptos", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --ink: #e5ece6;
+      --muted: #a8b5ab;
+      --green: #3b5848;
+      --green-deep: #101b14;
+      --mint: #242e26;
+      --paper: #101310;
+      --white: #1b201c;
+      --coral: #d89a9a;
+      --coral-pale: #302425;
+      --lime: #bfd2b8;
+      --line: #343d35;
+      --shadow: 0 16px 38px rgba(0, 0, 0, .4);
+      --eyebrow: #a6c1a8;
+      --tag: #a9cbb5;
+      --warm-text: #dfb9bb;
+      --tip-icon-text: #e4bfc1;
+      --meta: #9eaaa1;
+      --label: #c1ccc3;
+      --text-button: #c4d6c0;
+      --warm-border: #514044;
+      --warm-surface: #1d221e;
+      --focus: #d3b6b5;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: var(--paper); }
+    button, input, textarea { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+    .sidebar {
+      min-height: 100vh; padding: 30px 20px 22px; background: var(--green);
+      color: #f6f7ef; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+    }
+    .brand { display: flex; gap: 12px; align-items: center; padding: 0 8px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 13px 13px 13px 4px; background: var(--lime);
+      color: var(--green-deep); display: grid; place-items: center; font: 26px Georgia, serif;
+    }
+    .brand-name { font: 23px Georgia, serif; letter-spacing: 0; }
+    .brand-caption { margin-top: 2px; color: #c6d4c8; font-size: 11px; letter-spacing: .04em; }
+    .nav-label { margin: 48px 10px 12px; color: #b6c8bc; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+    .nav-list { display: grid; gap: 7px; }
+    .nav-link {
+      border: 0; width: 100%; padding: 12px 13px; border-radius: 5px; background: transparent;
+      color: #e4ebe4; text-align: left; cursor: pointer; display: flex; gap: 12px; align-items: center;
+      font-size: 14px; transition: background .18s ease, color .18s ease;
+    }
+    .nav-link:hover { background: rgba(255,255,255,.09); }
+    .nav-link[aria-current="page"] { background: var(--lime); color: var(--green-deep); font-weight: 650; }
+    .nav-symbol { width: 20px; text-align: center; font-size: 18px; line-height: 1; }
+    .sidebar-note { margin: auto 8px 0; padding: 17px 15px; border: 1px solid rgba(255,255,255,.18); border-radius: 5px; }
+    .sidebar-note p { margin: 0; color: #e6eee6; font: 16px/1.45 Georgia, serif; }
+    .sidebar-note span { display: block; margin-top: 10px; color: #b9cbbd; font-size: 11px; }
+
+    .main { min-width: 0; padding: 0 48px 64px; }
+    .topbar { height: 84px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .breadcrumb { color: var(--muted); font-size: 13px; }
+    .today-label { display: flex; align-items: center; gap: 9px; color: var(--green); font-size: 13px; font-weight: 650; }
+    .today-dot { width: 9px; height: 9px; background: var(--coral); border-radius: 50%; }
+    .theme-toggle { min-height: 38px; padding: 0 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--white); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 650; }
+    .theme-toggle:hover { background: var(--mint); }
+    .theme-icon { font-size: 17px; line-height: 1; }
+    :root[data-theme="dark"] .today-label { color: var(--lime); }
+    :root[data-theme="dark"] .date-chip { background: var(--white); }
+    :root[data-theme="dark"] .tip-number,
+    :root[data-theme="dark"] .tip-card p,
+    :root[data-theme="dark"] .tip-action span,
+    :root[data-theme="dark"] .section-heading p,
+    :root[data-theme="dark"] .strategy-card p,
+    :root[data-theme="dark"] .saved-card p,
+    :root[data-theme="dark"] .note-card p,
+    :root[data-theme="dark"] .field label,
+    :root[data-theme="dark"] .note-meta { color: var(--muted); }
+    :root[data-theme="dark"] .tip-icon { color: var(--tip-icon-text); }
+    :root[data-theme="dark"] .reminder-copy { color: var(--warm-text); }
+    :root[data-theme="dark"] .reminder-controls input[type="time"] { border-color: var(--line); background: var(--white); color: var(--ink); }
+    :root[data-theme="dark"] .field input,
+    :root[data-theme="dark"] .field textarea { border-color: var(--line); background: var(--white); color: var(--ink); }
+    :root[data-theme="dark"] .field input::placeholder,
+    :root[data-theme="dark"] .field textarea::placeholder { color: #9eada2; }
+    :root[data-theme="dark"] .strategy-tag { color: var(--tag); }
+    :root[data-theme="dark"] .text-button,
+    :root[data-theme="dark"] .button-outline,
+    :root[data-theme="dark"] .gentle-panel button { color: var(--text-button); }
+    :root[data-theme="dark"] .button-outline:hover { background: var(--mint); }
+    :root[data-theme="dark"] .empty-state { border-color: var(--line); }
+    :root[data-theme="dark"] .mobile-nav { background: var(--white); }
+    :root[data-theme="dark"] .mobile-nav .nav-link { color: var(--muted); }
+    :root[data-theme="dark"] .mobile-nav .nav-link[aria-current="page"] { color: var(--ink); background: var(--mint); }
+    :root[data-theme="dark"] .mobile-brand { color: var(--lime); }
+    .content { width: min(100%, 1030px); margin: 0 auto; }
+    .page { display: none; animation: appear .28s ease both; }
+    .page.is-active { display: block; }
+    @keyframes appear { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    .welcome { padding: 44px 0 28px; display: flex; justify-content: space-between; align-items: end; gap: 24px; }
+    .eyebrow { margin: 0 0 10px; color: var(--eyebrow); font-size: 11px; text-transform: uppercase; letter-spacing: .15em; font-weight: 700; }
+    h1, h2, h3, p { overflow-wrap: anywhere; }
+    h1 { margin: 0; font: 46px/1.05 Georgia, "Times New Roman", serif; letter-spacing: 0; }
+    .welcome-copy { max-width: 430px; margin: 12px 0 0; color: var(--muted); line-height: 1.6; font-size: 15px; }
+    .date-chip { flex: 0 0 auto; padding: 10px 13px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font-size: 12px; background: var(--white); }
+    .daily-grid { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(280px, .82fr); gap: 16px; }
+    .thought-card { min-height: 322px; padding: 27px 29px; border-radius: 6px; background: var(--green); color: #f9f8ee; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: var(--shadow); }
+    .thought-card::after { content: ""; position: absolute; width: 165px; height: 165px; border: 1px solid rgba(197,214,189,.28); border-radius: 50%; right: -62px; top: -62px; box-shadow: 0 0 0 18px rgba(197,214,189,.045), 0 0 0 38px rgba(197,214,189,.035); }
+    .card-kicker { margin: 0; color: var(--lime); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; font-weight: 700; }
+    .wisdom-source { margin: 18px 0 -10px; position: relative; z-index: 1; }
+    .wisdom-source p { margin: 0; color: var(--lime); font: 20px/1.2 Georgia, "Times New Roman", serif; }
+    .wisdom-source span { display: block; margin-top: 4px; color: #c8d6ca; font-size: 11px; }
+    .thought-card blockquote { max-width: 540px; margin: auto 0; padding: 26px 0; font: 30px/1.24 Georgia, "Times New Roman", serif; letter-spacing: 0; }
+    .thought-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; position: relative; z-index: 1; }
+    .thought-footer small { color: #c8d6ca; font-size: 12px; }
+    .button {
+      min-height: 42px; padding: 0 14px; border: 1px solid transparent; border-radius: 4px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 650; font-size: 13px;
+      transition: transform .16s ease, background .16s ease, border-color .16s ease;
+    }
+    .button:hover { transform: translateY(-1px); }
+    .button-light { background: var(--white); color: var(--green-deep); }
+    .button-light:hover { background: var(--lime); }
+    :root[data-theme="dark"] .button-light { color: var(--text-button); }
+    .button-outline { border-color: var(--line); background: transparent; color: var(--green); }
+    .button-outline:hover { background: var(--mint); }
+    .button-primary { background: var(--green); color: white; }
+    .button-primary:hover { background: var(--green-deep); }
+    .button-icon { font-size: 17px; line-height: 1; }
+    .tip-card { min-height: 322px; padding: 25px 24px; border-radius: 6px; border: 1px solid var(--line); background: var(--white); display: flex; flex-direction: column; }
+    .tip-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .tip-number { color: #718177; font-size: 12px; }
+    .tip-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--coral-pale); color: var(--tip-icon-text); font-size: 19px; }
+    .tip-card h2 { margin: 24px 0 9px; font: 25px/1.12 Georgia, "Times New Roman", serif; }
+    .tip-card p { margin: 0; color: #5f6e65; font-size: 14px; line-height: 1.58; }
+    .tip-action { margin-top: auto; padding-top: 22px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .tip-action span { color: #839087; font-size: 11px; }
+    .lower-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, .72fr); gap: 16px; margin-top: 17px; }
+    .daily-strategy { margin-top: 16px; padding: 18px 22px; border: 1px solid var(--line); border-radius: 6px; background: var(--mint); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .daily-strategy h2 { margin: 0 0 6px; font: 21px/1.2 Georgia, serif; }
+    .daily-strategy p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .daily-strategy .eyebrow { margin-bottom: 7px; color: var(--eyebrow); font-size: 10px; }
+    .reminder-panel, .gentle-panel { border-radius: 6px; padding: 20px 22px; }
+    .reminder-panel { background: var(--coral-pale); display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .reminder-title { margin: 0 0 5px; font: 19px Georgia, serif; }
+    .reminder-copy { margin: 0; color: #775a4e; font-size: 12px; line-height: 1.45; }
+    .reminder-controls { display: flex; align-items: center; gap: 12px; }
+    .reminder-controls input[type="time"] { width: 96px; padding: 8px; border: 1px solid var(--warm-border); border-radius: 4px; background: var(--warm-surface); color: var(--ink); }
+    .switch { position: relative; width: 42px; height: 24px; flex: 0 0 auto; }
+    .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .switch-track { display: block; width: 42px; height: 24px; border-radius: 99px; background: #b5a197; cursor: pointer; transition: background .2s ease; }
+    .switch-track::after { content: ""; display: block; width: 18px; height: 18px; margin: 3px; border-radius: 50%; background: white; transition: transform .2s ease; }
+    .switch input:checked + .switch-track { background: var(--green); }
+    .switch input:checked + .switch-track::after { transform: translateX(18px); }
+    .switch input:focus-visible + .switch-track { outline: 3px solid var(--focus); outline-offset: 3px; }
+    .gentle-panel { background: var(--mint); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .gentle-panel p { margin: 0; font: 17px/1.35 Georgia, serif; }
+    .gentle-panel button { flex: 0 0 auto; border: 0; background: transparent; color: var(--green); cursor: pointer; font-size: 22px; }
+
+    .subpage-heading { padding: 48px 0 28px; }
+    .subpage-heading h1 { font-size: 42px; }
+    .subpage-heading p:last-child { max-width: 620px; margin: 12px 0 0; color: var(--muted); line-height: 1.6; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin: 24px 0 13px; }
+    .section-heading h2 { margin: 0; font: 24px Georgia, serif; }
+    .section-heading p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .tool-form, .note-form { padding: 20px; border-radius: 6px; border: 1px solid var(--line); background: var(--white); }
+    .form-grid { display: grid; grid-template-columns: minmax(160px, .65fr) minmax(220px, 1.35fr) auto; align-items: end; gap: 12px; }
+    .field { display: grid; gap: 7px; }
+    .field label { color: var(--label); font-size: 12px; font-weight: 650; }
+    .field input, .field textarea { width: 100%; min-height: 42px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--white); color: var(--ink); }
+    .field textarea { min-height: 100px; resize: vertical; }
+    .strategy-list, .saved-list, .notes-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .strategy-card, .saved-card, .note-card { padding: 18px; border: 1px solid var(--line); border-radius: 5px; background: var(--white); }
+    .strategy-card { position: relative; }
+    .strategy-tag { display: inline-block; margin-bottom: 10px; color: var(--tag); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+    .strategy-card h3, .saved-card h3, .note-card h3 { margin: 0 0 7px; font: 19px/1.2 Georgia, serif; }
+    .strategy-card p, .saved-card p, .note-card p { margin: 0; color: #627068; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+    .card-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .text-button { padding: 5px 8px; border: 0; background: transparent; color: var(--text-button); cursor: pointer; font-size: 12px; }
+    .text-button:hover { text-decoration: underline; }
+    .empty-state { padding: 26px 20px; border: 1px dashed #b9c8b9; border-radius: 5px; color: var(--muted); text-align: center; font-size: 13px; line-height: 1.5; grid-column: 1 / -1; }
+    .note-layout { display: grid; grid-template-columns: minmax(260px, .75fr) minmax(0, 1.25fr); gap: 16px; align-items: start; }
+    .note-form { display: grid; gap: 14px; }
+    .note-form h2 { margin: 0; font: 23px Georgia, serif; }
+    .notes-list { grid-template-columns: 1fr; }
+    .note-meta { margin-top: 12px; color: #89958d; font-size: 11px; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 10; max-width: min(360px, calc(100vw - 32px)); padding: 13px 16px; border-radius: 4px; background: var(--green-deep); color: white; box-shadow: var(--shadow); font-size: 13px; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s ease, transform .2s ease; }
+    .toast.is-visible { opacity: 1; transform: translateY(0); }
+    .mobile-brand { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 920px) {
+      .main { padding-inline: 28px; }
+      .app-shell { grid-template-columns: 212px minmax(0, 1fr); }
+      .daily-grid { grid-template-columns: 1fr; }
+      .thought-card, .tip-card { min-height: 270px; }
+      .lower-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 650px) {
+      .app-shell { display: block; padding-bottom: 74px; }
+      .sidebar { display: none; }
+      .main { padding: 0 18px 34px; }
+      .topbar { height: 64px; }
+      .mobile-brand { display: flex; align-items: center; gap: 8px; color: var(--green); font: 18px Georgia, serif; }
+      .today-label { display: none; }
+      .theme-label { display: none; }
+      .theme-toggle { width: 40px; min-height: 40px; justify-content: center; padding: 0; }
+      .mobile-brand .brand-mark { width: 30px; height: 30px; border-radius: 10px 10px 10px 3px; font-size: 20px; }
+      .breadcrumb { display: none; }
+      .welcome { padding: 31px 0 21px; display: block; }
+      h1 { font-size: 38px; }
+      .welcome-copy { font-size: 14px; }
+      .date-chip { display: inline-block; margin-top: 17px; }
+      .thought-card { min-height: 294px; padding: 23px 21px; }
+      .thought-card blockquote { font-size: 27px; }
+      .tip-card { min-height: 285px; }
+      .daily-strategy { align-items: stretch; flex-direction: column; gap: 14px; padding: 18px; }
+      .daily-strategy .button { width: 100%; }
+      .reminder-panel { align-items: flex-start; flex-direction: column; }
+      .reminder-controls { width: 100%; justify-content: space-between; }
+      .gentle-panel { padding: 17px; }
+      .subpage-heading { padding: 34px 0 20px; }
+      .subpage-heading h1 { font-size: 36px; }
+      .form-grid, .note-layout { grid-template-columns: 1fr; }
+      .form-grid .button { width: 100%; }
+      .strategy-list, .saved-list { grid-template-columns: 1fr; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .mobile-nav {
+        position: fixed; z-index: 5; inset: auto 0 0; min-height: 66px; padding: 7px 10px calc(7px + env(safe-area-inset-bottom));
+        background: var(--white); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, 1fr);
+      }
+      .mobile-nav .nav-link { justify-content: center; flex-direction: column; gap: 3px; border-radius: 4px; color: #64736c; font-size: 10px; padding: 5px; }
+      .mobile-nav .nav-link[aria-current="page"] { color: var(--green-deep); background: var(--mint); }
+      .mobile-nav .nav-symbol { font-size: 18px; }
+      .toast { right: 16px; bottom: 82px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Huvudmeny">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">o</div>
+        <div><div class="brand-name">NPF-Oasen</div><div class="brand-caption">EN SAK I TAGET</div></div>
+      </div>
+      <p class="nav-label">Ditt utrymme</p>
+      <nav class="nav-list" aria-label="Sidor">
+        <button class="nav-link" type="button" data-view="today" aria-current="page"><span class="nav-symbol" aria-hidden="true">☼</span> Idag</button>
+        <button class="nav-link" type="button" data-view="toolbox"><span class="nav-symbol" aria-hidden="true">⌘</span> Verktygslåda</button>
+        <button class="nav-link" type="button" data-view="notes"><span class="nav-symbol" aria-hidden="true">▤</span> Mina anteckningar</button>
+      </nav>
+      <div class="sidebar-note"><p>Du behöver inte lösa hela dagen just nu.</p><span>En sak i taget räcker.</span></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark" aria-hidden="true">o</span> NPF-Oasen</div>
+        <div class="breadcrumb" id="breadcrumb">Ditt utrymme / Idag</div>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Byt till mörkt läge" aria-pressed="false" title="Byt till mörkt läge"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-label">Mörkt läge</span></button>
+        <div class="today-label"><span class="today-dot" aria-hidden="true"></span> Din lugna hörna</div>
+      </header>
+      <div class="content">
+        <section class="page is-active" id="page-today" aria-labelledby="today-heading">
+          <div class="welcome">
+            <div>
+              <p class="eyebrow">En vänlig start på dagen</p>
+              <h1 id="today-heading">Hej, du.</h1>
+              <p class="welcome-copy">Här finns en liten tanke och ett konkret steg. Ta det som hjälper, lämna resten.</p>
+            </div>
+            <div class="date-chip" id="date-chip"></div>
+          </div>
+          <div class="daily-grid">
+            <article class="thought-card" aria-labelledby="thought-label">
+              <p class="card-kicker" id="thought-label">Dagens japanska ordspråk</p>
+              <div class="wisdom-source"><p id="thought-japanese" lang="ja"></p><span id="thought-romaji"></span></div>
+              <blockquote id="thought-text"></blockquote>
+              <div class="thought-footer">
+                <small id="thought-note"></small>
+                <button class="button button-light" type="button" id="save-thought"><span class="button-icon" aria-hidden="true">＋</span><span>Spara tanken</span></button>
+              </div>
+            </article>
+            <article class="tip-card" aria-labelledby="tip-title">
+              <div class="tip-top"><span class="tip-number" id="tip-number">Dagens lilla lågaffektiva tips</span><span class="tip-icon" aria-hidden="true">↗</span></div>
+              <h2 id="tip-title"></h2>
+              <p id="tip-copy"></p>
+              <div class="tip-action"><span>30 sekunder räcker</span><button class="button button-outline" type="button" id="save-tip"><span class="button-icon" aria-hidden="true">＋</span><span>Spara tips</span></button></div>
+            </article>
+          </div>
+          <section class="daily-strategy" aria-labelledby="daily-strategy-title">
+            <div>
+              <p class="eyebrow" id="daily-strategy-number"></p>
+              <h2 id="daily-strategy-title"></h2>
+              <p id="daily-strategy-copy"></p>
+            </div>
+            <button class="button button-outline" type="button" id="save-daily-strategy"><span class="button-icon" aria-hidden="true">＋</span> Spara strategi</button>
+          </section>
+          <div class="lower-grid">
+            <section class="reminder-panel" aria-labelledby="reminder-title">
+              <div><h2 class="reminder-title" id="reminder-title">En mjuk morgonpåminnelse</h2><p class="reminder-copy" id="reminder-copy">Påminnelsen kan visas när appen är öppen.</p></div>
+              <div class="reminder-controls">
+                <label class="switch"><input id="reminder-toggle" type="checkbox" aria-label="Slå på morgonpåminnelse"><span class="switch-track"></span></label>
+                <label class="sr-only" for="reminder-time">Tid för påminnelse</label><input id="reminder-time" type="time" value="08:00" aria-label="Tid för påminnelse">
+              </div>
+            </section>
+            <section class="gentle-panel"><p>Vardags Tips</p><button type="button" data-view="toolbox" aria-label="Öppna verktygslådan" title="Öppna verktygslådan">→</button></section>
+          </div>
+        </section>
+
+        <section class="page" id="page-toolbox" aria-labelledby="toolbox-heading" hidden>
+          <div class="subpage-heading"><p class="eyebrow">Samlat på ett ställe</p><h1 id="toolbox-heading">Din verktygslåda</h1><p>Små saker som kan göra nästa steg lite lättare. Lägg till det som fungerar för just er.</p></div>
+          <form class="tool-form" id="strategy-form">
+            <div class="form-grid">
+              <div class="field"><label for="strategy-title">Vad hjälper?</label><input id="strategy-title" name="title" maxlength="60" placeholder="Till exempel: bild vid ytterdörren" required></div>
+              <div class="field"><label for="strategy-description">När eller hur använder ni det?</label><input id="strategy-description" name="description" maxlength="180" placeholder="Skriv en kort beskrivning" required></div>
+              <button class="button button-primary" type="submit"><span class="button-icon" aria-hidden="true">＋</span> Lägg till</button>
+            </div>
+          </form>
+          <div class="section-heading"><div><h2>Era strategier</h2><p>Exempel att börja med, ändra eller ta bort.</p></div></div>
+          <div class="strategy-list" id="strategy-list"></div>
+          <div class="section-heading"><div><h2>Sparat från idag</h2><p>Tankar, tips och strategier du vill hitta igen.</p></div></div>
+          <div class="saved-list" id="saved-list"></div>
+        </section>
+
+        <section class="page" id="page-notes" aria-labelledby="notes-heading" hidden>
+          <div class="subpage-heading"><p class="eyebrow">Dina egna ord</p><h1 id="notes-heading">Mina anteckningar</h1><p>Fånga en tanke medan den finns nära. Anteckningarna sparas på den här enheten.</p></div>
+          <div class="note-layout">
+            <form class="note-form" id="note-form">
+              <h2>Ny anteckning</h2>
+              <div class="field"><label for="note-title">Rubrik</label><input id="note-title" name="title" maxlength="60" placeholder="Vad vill du komma ihåg?" required></div>
+              <div class="field"><label for="note-body">Anteckning</label><textarea id="note-body" name="body" maxlength="800" placeholder="Skriv fritt, det behöver inte bli perfekt." required></textarea></div>
+              <button class="button button-primary" type="submit"><span class="button-icon" aria-hidden="true">＋</span> Spara anteckning</button>
+            </form>
+            <div><div class="section-heading" style="margin-top:0"><div><h2>Senast sparat</h2><p>Bara du har tillgång till dem här.</p></div></div><div class="notes-list" id="notes-list"></div></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <nav class="mobile-nav" aria-label="Mobilmeny">
+    <button class="nav-link" type="button" data-view="today" aria-current="page"><span class="nav-symbol" aria-hidden="true">☼</span>Idag</button>
+    <button class="nav-link" type="button" data-view="toolbox"><span class="nav-symbol" aria-hidden="true">⌘</span>Verktyg</button>
+    <button class="nav-link" type="button" data-view="notes"><span class="nav-symbol" aria-hidden="true">▤</span>Anteckningar</button>
+  </nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const dailyWisdom = [
+      { theme: "Framgång", japanese: "千里の道も一歩から", romaji: "Senri no michi mo ippo kara", text: "A journey of a thousand miles begins with a single step." },
+      { theme: "Kämparglöd", japanese: "七転び八起き", romaji: "Nana korobi ya oki", text: "Fall seven times, stand up eight." },
+      { theme: "Motivation", japanese: "継続は力なり", romaji: "Keizoku wa chikara nari", text: "Perseverance becomes strength." },
+      { theme: "Motgångar & resiliens", japanese: "雨降って地固まる", romaji: "Ame futte ji katamaru", text: "After the rain, the ground grows firm." },
+      { theme: "Självacceptans", japanese: "猿も木から落ちる", romaji: "Saru mo ki kara ochiru", text: "Even experts make mistakes." },
+      { theme: "Lycka", japanese: "笑う門には福来る", romaji: "Warau kado ni wa fuku kitaru", text: "Good fortune comes to a house that smiles." },
+      { theme: "Uppskatta vardagen", japanese: "一期一会", romaji: "Ichigo ichie", text: "Treasure this meeting; this moment will never come in quite the same way again." },
+      { theme: "Självacceptans", japanese: "十人十色", romaji: "Juunin toiro", text: "Ten people, ten colors; everyone is different." },
+      { theme: "Tro & tillit", japanese: "案ずるより産むが易し", romaji: "Anzuru yori umu ga yasushi", text: "Taking action is often easier than worrying about it." },
+      { theme: "Inre frid & mindfulness", japanese: "急がば回れ", romaji: "Isogaba maware", text: "When in a hurry, take the calmer, safer route." },
+      { theme: "Framgång", japanese: "塵も積もれば山となる", romaji: "Chiri mo tsumoreba yama to naru", text: "Grains of dust, gathered over time, can become a mountain." },
+      { theme: "Motgångar & resiliens", japanese: "失敗は成功のもと", romaji: "Shippai wa seikou no moto", text: "Failure can be the foundation of success." },
+      { theme: "Självreflektion", japanese: "初心忘るべからず", romaji: "Shoshin wasuru bekarazu", text: "Do not forget the spirit you had when you began." },
+      { theme: "Familj", japanese: "親しき仲にも礼儀あり", romaji: "Shitashiki naka ni mo reigi ari", text: "Even close relationships need care and respect." },
+      { theme: "Tro & tillit", japanese: "待てば海路の日和あり", romaji: "Mateba kairo no hiyori ari", text: "Wait, and fair weather may yet come for the voyage." },
+      { theme: "Uppskatta vardagen", japanese: "住めば都", romaji: "Sumeba miyako", text: "Wherever you settle, it can become home." },
+      { theme: "Uppskatta vardagen", japanese: "早起きは三文の徳", romaji: "Hayaoki wa sanmon no toku", text: "An early start brings a small reward." },
+      { theme: "Vänskap", japanese: "旅は道連れ世は情け", romaji: "Tabi wa michizure yo wa nasake", text: "On a journey, seek a companion; in life, show kindness." },
+      { theme: "Vänskap", japanese: "三人寄れば文殊の知恵", romaji: "Sannin yoreba Monju no chie", text: "When people think together, wisdom can grow." },
+      { theme: "Kärlek & romantik", japanese: "縁は異なもの味なもの", romaji: "En wa i na mono aji na mono", text: "The ties between people can form in wonderfully unexpected ways." },
+      { theme: "Melankoli & längtan", japanese: "会うは別れの始め", romaji: "Au wa wakare no hajime", text: "Every meeting also begins a story of change and parting." },
+      { theme: "Motgångar & resiliens", japanese: "月に叢雲花に風", romaji: "Tsuki ni murakumo, hana ni kaze", text: "Clouds veil the moon and wind scatters blossoms; even beautiful things meet change." },
+      { theme: "Tro & tillit", japanese: "明日は明日の風が吹く", romaji: "Ashita wa ashita no kaze ga fuku", text: "Tomorrow will bring its own winds; take care of today first." },
+      { theme: "Vardagsglädje", japanese: "花より団子", romaji: "Hana yori dango", text: "Sometimes simple, satisfying pleasures matter more than appearances." },
+      { theme: "Livets mysterier", japanese: "井の中の蛙大海を知らず", romaji: "I no naka no kawazu taikai o shirazu", text: "The frog in the well does not know the great ocean; the world is wider than our view." },
+      { theme: "Framgång", japanese: "能ある鷹は爪を隠す", romaji: "Nou aru taka wa tsume o kakusu", text: "A capable hawk keeps its claws hidden." },
+      { theme: "Självacceptans", japanese: "蓼食う虫も好き好き", romaji: "Tade kuu mushi mo suki suki", text: "Tastes differ; what suits one may not suit another." },
+      { theme: "Familj", japanese: "可愛い子には旅をさせよ", romaji: "Kawaii ko ni wa tabi o saseyo", text: "Let those you love discover the world for themselves." },
+      { theme: "Vänskap", japanese: "袖振り合うも多生の縁", romaji: "Sode furiau mo tashou no en", text: "Even a passing encounter may be a meaningful connection." },
+      { theme: "Kämparglöd", japanese: "石の上にも三年", romaji: "Ishi no ue ni mo sannen", text: "Even a cold stone grows warm if you stay long enough." },
+      { theme: "Uppskatta vardagen", japanese: "光陰矢の如し", romaji: "Kouin ya no gotoshi", text: "Time flies like an arrow; notice the small moments as they pass." },
+      { theme: "Livets mysterier", japanese: "諸行無常", romaji: "Shogyou mujyou", text: "All things change; no moment stays forever." },
+      { theme: "Inre frid & mindfulness", japanese: "日日是好日", romaji: "Nichinichi kore koujitsu", text: "Every day has its own value, even when it differs from what you hoped." },
+      { theme: "Inre frid & mindfulness", japanese: "果報は寝て待て", romaji: "Kahou wa nete mate", text: "Do what you can, then let the rest arrive in its own time." },
+      { theme: "Familj & gemenskap", japanese: "和を以て貴しとなす", romaji: "Wa o motte toutoshi to nasu", text: "Cherish harmony and seek a way for people to live well together." }
+    ];
+    const dailyTips = [
+      { title: "Gör starten synlig", text: "Sätt en bild på jacka och skor vid ytterdörren. En tydlig ledtråd kan göra det lättare att komma igång utan många muntliga instruktioner." },
+      { title: "Packa för sinnena", text: "Ska ni till affären? Lägg hörselkåpor eller en keps i väskan, även de dagar då det brukar gå bra. Att ha ett val kan kännas tryggt." },
+      { title: "Byt ut ‘snart’", text: "Prova en tydlig hållpunkt: ‘När klockan piper’ eller ‘Efter det här avsnittet’. Förutsägbarhet kan göra väntan mer begriplig." },
+      { title: "Ge en sak i taget", text: "Dela upp instruktionen i ett litet steg. Vänta in svaret innan du lägger till nästa. Färre ord kan ge mer arbetsro." },
+      { title: "Planera en paus", text: "Lägg in en liten återhämtningsstund före eller efter något som brukar ta energi. Pausen behöver inte förtjänas." }
+    ];
+    const dailyStrategies = [
+      { title: "Visa nästa steg", text: "Lägg fram bilden eller saken som hör till nästa aktivitet, så blir övergången lättare att se." },
+      { title: "Prova en första-sedan-lista", text: "Visa två steg i taget, till exempel ‘först skor, sedan gå ut’, i bild eller med få ord." },
+      { title: "Gör väntan synlig", text: "Testa en timer eller en tydlig nedräkning inför en övergång, om det brukar kännas hjälpsamt." },
+      { title: "Erbjud två val", text: "När det passar, låt barnet välja mellan två konkreta alternativ i stället för en öppen fråga." },
+      { title: "Skapa en pausplats", text: "Bestäm tillsammans en lugn plats där det går att ta en paus utan att behöva förklara så mycket." },
+      { title: "Förbered en utflykt", text: "Berätta kort vart ni ska, vad som händer först och vad ni gör efteråt. En enkel bild kan räcka." },
+      { title: "Packa en trygg sak", text: "Lägg en välbekant liten sak i väskan inför en miljö som kan kännas ny eller intensiv." },
+      { title: "Sänk mängden ord", text: "Ge en kort instruktion och lämna en stund för barnet att hinna ta in den innan du säger mer." },
+      { title: "Gör avslutet tydligt", text: "Visa hur aktiviteten avslutas, exempelvis genom att lägga undan saken tillsammans eller bocka av ett steg." },
+      { title: "Bygg in återhämtning", text: "Lämna lite luft före eller efter en krävande aktivitet, utan att fylla pausen med nya måsten." },
+      { title: "Testa en enkel checklista", text: "Skriv eller rita de få saker som behövs vid en återkommande rutin, som att komma iväg på morgonen." },
+      { title: "Välj en lugn signal", text: "Kom överens om ett ord, tecken eller kort som betyder ‘paus’ och går att använda även bland andra." },
+      { title: "Gör ljudmiljön förutsägbar", text: "Berätta innan ett högt ljud kan komma och erbjud hörselskydd om barnet vill använda dem." },
+      { title: "Dela upp en uppgift", text: "Gör en större syssla till små synliga delar och uppmärksamma vilket steg som är klart." },
+      { title: "Planera en mjuk start", text: "Låt första minuten av en ny aktivitet vara enkel och bekant innan ni lägger till fler moment." },
+      { title: "Förvarna med samma ord", text: "Använd en återkommande kort fras när det snart är dags att byta aktivitet, så signalen känns igen." },
+      { title: "Skapa en reservplan", text: "Tänk ut ett enkelt alternativ om planen ändras, och berätta det så snart det går." },
+      { title: "Låt barnet visa", text: "Erbjud papper, bilder eller gester som alternativ när det är svårt att hitta orden." },
+      { title: "Förbered klädval", text: "Välj mellan två plagg i förväg och ta hänsyn till sådant som sömmar, material och temperatur." },
+      { title: "Avsluta med en signal", text: "Använd samma lugna fras eller rutin när något tar slut, så att avslutet blir lättare att känna igen." },
+      { title: "Skydda en lugn stund", text: "Bestäm en kort stund utan krav efter skola eller aktivitet, innan ni tar upp praktiska saker." }
+    ];
+    const defaultStrategies = [
+      { id: "default-door", title: "Bild vid ytterdörren", description: "En bild på jacka och skor visar vad som behövs innan vi går.", category: "Övergång" },
+      { id: "default-choice", title: "Två tydliga val", description: "Erbjud två möjliga alternativ när det finns utrymme att välja.", category: "Delaktighet" },
+      { id: "default-pause", title: "Lugn plats", description: "Bestäm i förväg var det går att ta en paus när intrycken blir många.", category: "Återhämtning" }
+    ];
+
+    const storageKey = "npf-oasen-v1";
+    function loadState() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(storageKey) || "{}");
+        return {
+          strategies: Array.isArray(stored.strategies) ? stored.strategies : defaultStrategies,
+          saved: Array.isArray(stored.saved) ? stored.saved : [],
+          notes: Array.isArray(stored.notes) ? stored.notes : [],
+          reminderEnabled: Boolean(stored.reminderEnabled),
+          reminderTime: typeof stored.reminderTime === "string" ? stored.reminderTime : "08:00",
+          notifiedDate: stored.notifiedDate || "",
+          theme: stored.theme === "dark" ? "dark" : "light"
+        };
+      } catch {
+        return { strategies: defaultStrategies, saved: [], notes: [], reminderEnabled: false, reminderTime: "08:00", notifiedDate: "", theme: "light" };
+      }
+    }
+    const state = loadState();
+    function persist() { localStorage.setItem(storageKey, JSON.stringify(state)); }
+    function applyTheme() {
+      const isDark = state.theme === "dark";
+      const label = isDark ? "Byt till ljust läge" : "Byt till mörkt läge";
+      document.documentElement.dataset.theme = state.theme;
+      const button = document.getElementById("theme-toggle");
+      button.setAttribute("aria-label", label);
+      button.setAttribute("title", label);
+      button.setAttribute("aria-pressed", String(isDark));
+      button.querySelector(".theme-icon").textContent = isDark ? "☼" : "☾";
+      button.querySelector(".theme-label").textContent = isDark ? "Ljust läge" : "Mörkt läge";
+      document.querySelector('meta[name="theme-color"]').content = isDark ? "#101310" : "#48665a";
+    }
+    function safeText(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[char]));
+    }
+    function localDateKey(date = new Date()) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+    function dailyIndex(length) {
+      const start = new Date(2025, 0, 1);
+      const today = new Date();
+      const days = Math.floor((new Date(today.getFullYear(), today.getMonth(), today.getDate()) - start) / 86400000);
+      return ((days % length) + length) % length;
+    }
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      clearTimeout(showToast.timeout);
+      showToast.timeout = setTimeout(() => toast.classList.remove("is-visible"), 2600);
+    }
+    function renderDailyContent() {
+      const thought = dailyWisdom[dailyIndex(dailyWisdom.length)];
+      const tip = dailyTips[dailyIndex(dailyTips.length)];
+      document.getElementById("thought-text").textContent = `“${thought.text}”`;
+      document.getElementById("thought-japanese").textContent = thought.japanese;
+      document.getElementById("thought-romaji").textContent = thought.romaji;
+      document.getElementById("thought-note").textContent = `Tema: ${thought.theme} · traditionellt uttryck`;
+      document.getElementById("tip-title").textContent = tip.title;
+      document.getElementById("tip-copy").textContent = tip.text;
+      const strategy = dailyStrategies[dailyIndex(dailyStrategies.length)];
+      document.getElementById("daily-strategy-number").textContent = `Dagens strategi · ${dailyIndex(dailyStrategies.length) + 1} av ${dailyStrategies.length}`;
+      document.getElementById("daily-strategy-title").textContent = strategy.title;
+      document.getElementById("daily-strategy-copy").textContent = strategy.text;
+      document.getElementById("date-chip").textContent = new Intl.DateTimeFormat("sv-SE", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
+      document.getElementById("tip-number").textContent = `Dagens lilla lågaffektiva tips · ${dailyIndex(dailyTips.length) + 1} av ${dailyTips.length}`;
+    }
+    function renderStrategies() {
+      const list = document.getElementById("strategy-list");
+      list.innerHTML = state.strategies.length ? state.strategies.map((item) => `
+        <article class="strategy-card"><span class="strategy-tag">${safeText(item.category || "Eget tips")}</span><h3>${safeText(item.title)}</h3><p>${safeText(item.description)}</p>
+        ${String(item.id).startsWith("default-") ? "" : `<div class="card-tools"><button class="text-button" type="button" data-delete-strategy="${safeText(item.id)}">Ta bort</button></div>`}</article>`).join("") : `<div class="empty-state">Din verktygslåda är tom just nu. Lägg till en strategi som brukar hjälpa.</div>`;
+    }
+    function renderSaved() {
+      const list = document.getElementById("saved-list");
+      list.innerHTML = state.saved.length ? state.saved.map((item, index) => `
+        <article class="saved-card"><span class="strategy-tag">${safeText(item.kind)}</span><h3>${safeText(item.title)}</h3><p>${safeText(item.description)}</p>
+        <div class="card-tools"><button class="text-button" type="button" data-delete-saved="${index}">Ta bort</button></div></article>`).join("") : `<div class="empty-state">Spara en tanke eller ett tips från sidan Idag, så finns det här när du behöver det.</div>`;
+    }
+    function renderNotes() {
+      const list = document.getElementById("notes-list");
+      list.innerHTML = state.notes.length ? state.notes.map((note, index) => `
+        <article class="note-card"><h3>${safeText(note.title)}</h3><p>${safeText(note.body)}</p><div class="note-meta">${safeText(note.date)}</div>
+        <div class="card-tools"><button class="text-button" type="button" data-delete-note="${index}">Ta bort</button></div></article>`).join("") : `<div class="empty-state">Här visas dina anteckningar när du sparat något.</div>`;
+    }
+    function renderReminder() {
+      document.getElementById("reminder-toggle").checked = state.reminderEnabled;
+      document.getElementById("reminder-time").value = state.reminderTime;
+      document.getElementById("reminder-copy").textContent = state.reminderEnabled
+        ? `Påminnelse kl. ${state.reminderTime}. Den visas när appen är öppen.`
+        : "Påminnelsen kan visas när appen är öppen.";
+    }
+    function setView(view) {
+      document.querySelectorAll(".page").forEach((page) => {
+        const active = page.id === `page-${view}`;
+        page.classList.toggle("is-active", active);
+        page.hidden = !active;
+      });
+      document.querySelectorAll("[data-view]").forEach((button) => {
+        if (button.classList.contains("nav-link")) {
+          if (button.dataset.view === view) button.setAttribute("aria-current", "page");
+          else button.removeAttribute("aria-current");
+        }
+      });
+      const labels = { today: "Idag", toolbox: "Verktygslåda", notes: "Mina anteckningar" };
+      document.getElementById("breadcrumb").textContent = `Ditt utrymme / ${labels[view]}`;
+    }
+    function saveItem(kind, title, description) {
+      if (state.saved.some((item) => item.title === title && item.kind === kind)) {
+        showToast("Den finns redan i din verktygslåda.");
+        return;
+      }
+      state.saved.unshift({ kind, title, description });
+      persist(); renderSaved(); showToast("Sparat i din verktygslåda.");
+    }
+
+    document.addEventListener("click", (event) => {
+      const viewButton = event.target.closest("[data-view]");
+      if (viewButton) { setView(viewButton.dataset.view); return; }
+      const deleteStrategy = event.target.closest("[data-delete-strategy]");
+      if (deleteStrategy) {
+        state.strategies = state.strategies.filter((item) => item.id !== deleteStrategy.dataset.deleteStrategy);
+        persist(); renderStrategies(); showToast("Strategin är borttagen."); return;
+      }
+      const deleteSaved = event.target.closest("[data-delete-saved]");
+      if (deleteSaved) { state.saved.splice(Number(deleteSaved.dataset.deleteSaved), 1); persist(); renderSaved(); showToast("Borttaget."); return; }
+      const deleteNote = event.target.closest("[data-delete-note]");
+      if (deleteNote) { state.notes.splice(Number(deleteNote.dataset.deleteNote), 1); persist(); renderNotes(); showToast("Anteckningen är borttagen."); }
+    });
+    document.getElementById("save-thought").addEventListener("click", () => {
+      const thought = dailyWisdom[dailyIndex(dailyWisdom.length)];
+      saveItem("Japanskt visdomsord", thought.theme, `${thought.japanese} (${thought.romaji}) — ${thought.text}`);
+    });
+    document.getElementById("save-tip").addEventListener("click", () => {
+      saveItem("Dagens tips", document.getElementById("tip-title").textContent, document.getElementById("tip-copy").textContent);
+    });
+    document.getElementById("save-daily-strategy").addEventListener("click", () => {
+      const strategy = dailyStrategies[dailyIndex(dailyStrategies.length)];
+      saveItem("Dagens strategi", strategy.title, strategy.text);
+    });
+    document.getElementById("strategy-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      state.strategies.unshift({ id: `custom-${Date.now()}`, title: data.get("title").trim(), description: data.get("description").trim(), category: "Egen strategi" });
+      persist(); renderStrategies(); form.reset(); document.getElementById("strategy-title").focus(); showToast("Strategin är sparad.");
+    });
+    document.getElementById("note-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const date = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "long", year: "numeric" }).format(new Date());
+      state.notes.unshift({ title: data.get("title").trim(), body: data.get("body").trim(), date });
+      persist(); renderNotes(); form.reset(); document.getElementById("note-title").focus(); showToast("Anteckningen är sparad på den här enheten.");
+    });
+    document.getElementById("reminder-toggle").addEventListener("change", async (event) => {
+      if (event.target.checked && "Notification" in window && Notification.permission === "default") {
+        await Notification.requestPermission();
+      }
+      state.reminderEnabled = event.target.checked;
+      persist(); renderReminder();
+      showToast(state.reminderEnabled ? "Morgonpåminnelsen är på." : "Morgonpåminnelsen är av.");
+    });
+    document.getElementById("reminder-time").addEventListener("change", (event) => {
+      state.reminderTime = event.target.value || "08:00";
+      persist(); renderReminder();
+    });
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      state.theme = state.theme === "dark" ? "light" : "dark";
+      persist(); applyTheme();
+    });
+    function checkReminder() {
+      if (!state.reminderEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+      const now = new Date();
+      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const date = localDateKey(now);
+      if (currentTime === state.reminderTime && state.notifiedDate !== date) {
+        new Notification("En liten påminnelse från NPF-Oasen", { body: dailyWisdom[dailyIndex(dailyWisdom.length)].text });
+        state.notifiedDate = date; persist();
+      }
+    }
+    applyTheme(); renderDailyContent(); renderStrategies(); renderSaved(); renderNotes(); renderReminder();
+    setInterval(checkReminder, 30000);
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch((error) => console.error("Kunde inte starta offline-stödet.", error));
+      });
+    }
+  </script>
+</body>
+</html>
